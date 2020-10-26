@@ -10,7 +10,7 @@ const SafeEventEmitter = require('safe-event-emitter')
  * @param {Object} log - The logging API to use.
  * @returns {Function} json-rpc-engine middleware function
  */
-function createErrorMiddleware (log) {
+function createErrorMiddleware(log) {
   return (req, res, next) => {
 
     // json-rpc-engine will terminate the request when it notices this error
@@ -51,8 +51,8 @@ const getRpcPromiseCallback = (resolve, reject, unwrapResult = true) => (error, 
  * @param {string} remoteLabel - The label of the disconnected stream.
  * @param {Error} err - The associated error to log.
  */
-function logStreamDisconnectWarning (log, remoteLabel, err) {
-  let warningMsg = `MetaMaskInpageProvider - lost connection to ${remoteLabel}`
+function logStreamDisconnectWarning(log, remoteLabel, err) {
+  let warningMsg = `InpageProvider - lost connection to ${remoteLabel}`
   if (err) {
     warningMsg += `\n${err.stack}`
   }
@@ -65,7 +65,7 @@ function logStreamDisconnectWarning (log, remoteLabel, err) {
 }
 
 // eslint-disable-next-line no-empty-function
-const NOOP = () => {}
+const NOOP = () => { }
 
 // constants
 

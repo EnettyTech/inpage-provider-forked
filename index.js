@@ -1,8 +1,8 @@
-const MetaMaskInpageProvider = require('./src/MetaMaskInpageProvider')
+const InpageProvider = require('./src/InpageProvider')
 const { initProvider, setGlobalProvider } = require('./src/initProvider')
 
 module.exports = {
-  MetaMaskInpageProvider,
+  InpageProvider,
   initProvider,
   setGlobalProvider,
 }

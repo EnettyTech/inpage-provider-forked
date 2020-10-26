@@ -1,5 +1,5 @@
 {
-  "name": "@metamask/inpage-provider",
+  "name": "@ezdefi/inpage-provider-forked",
   "version": "7.0.0",
   "description": "A JavaScript Ethereum provider that connects over a WebExtension port.",
   "main": "index.js",

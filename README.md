@@ -1,17 +1,18 @@
-# MetaMask Inpage Provider
+# Inpage Provider Forked
 
-The inpage Ethereum provider object injected by MetaMask into web pages.
-Contains a lot of implementation details specific to MetaMask, and is probably
+The inpage Ethereum provider object injected by mobile or extension into web pages.
+Contains a lot of implementation details specific to mobile or extension, and is probably
 not suitable for out-of-the-box use with other wallets.
+This module forked from @metamask/inpage-provider.
 
 ## Installation
 
-`yarn add @metamask/inpage-provider`
+`yarn add @ezdefi/inpage-provider-forked`
 
 ## Usage
 
 ```javascript
-import { initProvider } from '@metamask/inpage-provider'
+import { initProvider } from '@ezdefi/inpage-provider-forked'
 
 // Create a stream to a remote provider:
 const metamaskStream = new LocalMessageDuplexStream({

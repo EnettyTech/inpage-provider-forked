@@ -32,7 +32,7 @@ let log
  * @property {function} warn - Like console.warn
  */
 
-module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
+module.exports = class InpageProvider extends SafeEventEmitter {
 
   /**
    * @param {Object} connectionStream - A Node.js duplex stream
@@ -43,7 +43,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    * @param {boolean} [options.shouldSendMetadata] - Whether the provider should
    * send page metadata. Default: true
    */
-  constructor (
+  constructor(
     connectionStream,
     {
       logger = console,
@@ -108,6 +108,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
 
     // bind functions (to prevent e.g. web3@1.x from making unbound calls)
     this._handleAccountsChanged = this._handleAccountsChanged.bind(this)
+    this._handleChainIdChanged = this._handleChainIdChanged.bind(this)
     this._handleDisconnect = this._handleDisconnect.bind(this)
     this._sendSync = this._sendSync.bind(this)
     this._rpcRequest = this._rpcRequest.bind(this)
@@ -123,11 +124,11 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
       connectionStream,
       mux,
       connectionStream,
-      this._handleDisconnect.bind(this, 'MetaMask'),
+      this._handleDisconnect.bind(this, 'EzDefi'),
     )
 
     // subscribe to metamask public config (one-way)
-    this._publicConfigStore = new ObservableStore({ storageKey: 'MetaMask-Config' })
+    this._publicConfigStore = new ObservableStore({ storageKey: 'EzDefi-Config' })
 
     // handle isUnlocked changes, and chainChanged and networkChanged events
     this._publicConfigStore.subscribe((state) => {
@@ -167,7 +168,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
       mux.createStream('publicConfig'),
       asStream(this._publicConfigStore),
       // RPC requests should still work if only this stream fails
-      logStreamDisconnectWarning.bind(this, log, 'MetaMask PublicConfigStore'),
+      logStreamDisconnectWarning.bind(this, log, 'EzDefi PublicConfigStore'),
     )
 
     // ignore phishing warning message (handled elsewhere)
@@ -187,7 +188,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
       jsonRpcConnection.stream,
       mux.createStream('provider'),
       jsonRpcConnection.stream,
-      this._handleDisconnect.bind(this, 'MetaMask RpcProvider'),
+      this._handleDisconnect.bind(this, 'EzDefi RpcProvider'),
     )
 
     // handle RPC requests via dapp-side rpc engine
@@ -239,7 +240,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
     this._web3Ref = undefined
 
     // TODO:deprecation:remove
-    // if true, MetaMask reloads the page if window.web3 has been accessed
+    // if true, EzDefi reloads the page if window.web3 has been accessed
     /** @deprecated */
     this.autoRefreshOnNetworkChange = true
 
@@ -253,7 +254,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
     }, 1000)
   }
 
-  get publicConfigStore () {
+  get publicConfigStore() {
     if (!this._state.sentWarnings.publicConfigStore) {
       log.warn(messages.warnings.publicConfigStore)
       this._state.sentWarnings.publicConfigStore = true
@@ -268,7 +269,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   /**
    * Returns whether the provider can process RPC requests.
    */
-  isConnected () {
+  isConnected() {
     return this._state.isConnected
   }
 
@@ -282,7 +283,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    * @returns {Promise<unknown>} A Promise that resolves with the result of the RPC method,
    * or rejects if an error is encountered.
    */
-  async request (args) {
+  async request(args) {
 
     if (!args || typeof args !== 'object' || Array.isArray(args)) {
       throw ethErrors.rpc.invalidRequest({
@@ -324,7 +325,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    * @param {Object} payload - The RPC request object.
    * @param {Function} cb - The callback function.
    */
-  sendAsync (payload, cb) {
+  sendAsync(payload, cb) {
     this._rpcRequest(payload, cb)
   }
 
@@ -337,7 +338,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   /**
    * @inheritdoc
    */
-  addListener (eventName, listener) {
+  addListener(eventName, listener) {
     this._warnOfDeprecation(eventName)
     return super.addListener(eventName, listener)
   }
@@ -345,7 +346,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   /**
    * @inheritdoc
    */
-  on (eventName, listener) {
+  on(eventName, listener) {
     this._warnOfDeprecation(eventName)
     return super.on(eventName, listener)
   }
@@ -353,7 +354,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   /**
    * @inheritdoc
    */
-  once (eventName, listener) {
+  once(eventName, listener) {
     this._warnOfDeprecation(eventName)
     return super.once(eventName, listener)
   }
@@ -361,7 +362,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   /**
    * @inheritdoc
    */
-  prependListener (eventName, listener) {
+  prependListener(eventName, listener) {
     this._warnOfDeprecation(eventName)
     return super.prependListener(eventName, listener)
   }
@@ -369,7 +370,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   /**
    * @inheritdoc
    */
-  prependOnceListener (eventName, listener) {
+  prependOnceListener(eventName, listener) {
     this._warnOfDeprecation(eventName)
     return super.prependOnceListener(eventName, listener)
   }
@@ -386,7 +387,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    * @param {Function} callback - The consumer's callback.
    * @param {boolean} [isInternal=false] - Whether the request is internal.
    */
-  _rpcRequest (payload, callback, isInternal = false) {
+  _rpcRequest(payload, callback, isInternal = false) {
 
     let cb = callback
 
@@ -411,6 +412,14 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
           callback(err, res)
         }
       }
+
+      if (payload.method === 'eth_chainId') {
+        // handle method get chainId
+        cb = (err, res) => {
+          this._handleChainIdChanged(res.result || "")
+          callback(err, res)
+        }
+      }
     }
     this._rpcEngine.handle(payload, cb)
   }
@@ -418,7 +427,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   /**
    * Called when connection is lost to critical streams.
    */
-  _handleDisconnect (streamName, err) {
+  _handleDisconnect(streamName, err) {
 
     logStreamDisconnectWarning.bind(this)(log, streamName, err)
 
@@ -445,13 +454,13 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    * @param {boolean} isInternal - Whether the accounts value was returned by an
    * internally initiated request.
    */
-  _handleAccountsChanged (accounts, isEthAccounts = false, isInternal = false) {
+  _handleAccountsChanged(accounts, isEthAccounts = false, isInternal = false) {
 
     let _accounts = accounts
 
     if (!Array.isArray(accounts)) {
       log.error(
-        'MetaMask: Received non-array accounts parameter. Please report this bug.',
+        'EzDefi: Received non-array accounts parameter. Please report this bug.',
         accounts,
       )
       _accounts = []
@@ -464,7 +473,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
       // returns, except in cases where isInternal is true
       if (isEthAccounts && this._state.accounts !== undefined && !isInternal) {
         log.error(
-          `MetaMask: 'eth_accounts' unexpectedly updated accounts. Please report this bug.`,
+          `EzDefi: 'eth_accounts' unexpectedly updated accounts. Please report this bug.`,
           _accounts,
         )
       }
@@ -494,9 +503,20 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   }
 
   /**
+   * Called when chainId undefinded.
+   * @param {string} chainId the chainId value
+   */
+  _handleChainIdChanged(chainId) {
+    if (!this.chainId || this.chainId !== chainId) {
+      this.chainId = chainId;
+      this.networkVersion = parseInt(chainId, 16).toString();
+    }
+  }
+
+  /**
    * Warns of deprecation for the given event, if applicable.
    */
-  _warnOfDeprecation (eventName) {
+  _warnOfDeprecation(eventName) {
     if (this._state.sentWarnings.events[eventName] === false) {
       log.warn(messages.warnings.events[eventName])
       this._state.sentWarnings.events[eventName] = true
@@ -508,15 +528,15 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    * Gets experimental _metamask API as Proxy, so that we can warn consumers
    * about its experiment nature.
    */
-  _getExperimentalApi () {
+  _getExperimentalApi() {
 
     return new Proxy(
       {
 
         /**
-         * Determines if MetaMask is unlocked by the user.
+         * Determines if EzDefi is unlocked by the user.
          *
-         * @returns {Promise<boolean>} - Promise resolving to true if MetaMask is currently unlocked
+         * @returns {Promise<boolean>} - Promise resolving to true if EzDefi is currently unlocked
          */
         isUnlocked: async () => {
           if (this._state.isUnlocked === undefined) {
@@ -596,7 +616,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    * @deprecated
    * @returns {Promise<Array<string>>} - A promise that resolves to an array of addresses.
    */
-  enable () {
+  enable() {
 
     if (!this._state.sentWarnings.enable) {
       log.warn(messages.warnings.enableDeprecation)
@@ -608,7 +628,14 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
         this._rpcRequest(
           { method: 'eth_requestAccounts', params: [] },
           getRpcPromiseCallback(resolve, reject),
-        )
+        );
+        // request method eth_chainId if this.chainId is undefined;
+        if (!this.chainId) {
+          this._rpcRequest(
+            { method: 'eth_chainId', params: "" },
+            getRpcPromiseCallback(resolve, reject)
+          )
+        }
       } catch (error) {
         reject(error)
       }
@@ -616,7 +643,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   }
 
   /**
-   * Sends an RPC request to MetaMask.
+   * Sends an RPC request to EzDefi.
    * Many different return types, which is why this method should not be used.
    *
    * @deprecated
@@ -624,7 +651,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    * @param {Array<any> | Function} [callbackOrArgs] - If given a method name, the method's parameters.
    * @returns {unknown} - The method result, or a JSON RPC response object.
    */
-  send (methodOrPayload, callbackOrArgs) {
+  send(methodOrPayload, callbackOrArgs) {
 
     if (!this._state.sentWarnings.send) {
       log.warn(messages.warnings.sendDeprecation)
@@ -659,10 +686,13 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
    *
    * @deprecated
    */
-  _sendSync (payload) {
+  _sendSync(payload) {
 
     let result
     switch (payload.method) {
+      case 'eth_chainId':
+        result = this.chainId ? this.chainId : "";
+        break;
 
       case 'eth_accounts':
         result = this.selectedAddress ? [this.selectedAddress] : []
@@ -693,7 +723,7 @@ module.exports = class MetaMaskInpageProvider extends SafeEventEmitter {
   }
 }
 
-function validateLoggerObject (logger) {
+function validateLoggerObject(logger) {
   if (logger !== console) {
     if (typeof logger === 'object') {
       const methodKeys = ['log', 'warn', 'error', 'debug', 'info', 'trace']

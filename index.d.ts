@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { Duplex } from 'stream';
 
-export interface MetaMaskInpageProviderOptions {
+export interface InpageProviderOptions {
 
   /**
    * The logging API to use.
@@ -22,29 +22,29 @@ export interface MetaMaskInpageProviderOptions {
   shouldSendMetadata?: boolean;
 }
 
-export class MetaMaskInpageProvider extends EventEmitter {
+export class InpageProvider extends EventEmitter {
 
   /**
    * @param connectionStream - A Node.js duplex stream.
    * @param options - An options bag.
    */
-  constructor (connectionStream: Duplex, options?: MetaMaskInpageProviderOptions);
+  constructor(connectionStream: Duplex, options?: InpageProviderOptions);
 
   /**
    * Returns whether the provider can process RPC requests.
    */
-  isConnected (): boolean;
+  isConnected(): boolean;
 
   /**
    * Submits an RPC request for the given method, with the given params.
    * Resolves with the result of the method call, or rejects on error.
    */
-  request (args: RequestArguments): Promise<unknown>;
+  request(args: RequestArguments): Promise<unknown>;
 
   /**
    * Submits an RPC request per the given JSON-RPC request object.
    */
-  sendAsync (
+  sendAsync(
     payload: JsonRpcRequest,
     callback: (error: Error | null, result?: JsonRpcResponse) => void,
   ): void;
@@ -53,13 +53,13 @@ export class MetaMaskInpageProvider extends EventEmitter {
    * Submits an RPC request for the given method, with the given params.
    * @deprecated Use {@link request} instead.
    */
-  send (method: string, params?: unknown[]): Promise<JsonRpcResponse>;
+  send(method: string, params?: unknown[]): Promise<JsonRpcResponse>;
 
   /**
    * Submits an RPC request per the given JSON-RPC request object.
    * @deprecated Use {@link request} instead.
    */
-  send (
+  send(
     payload: JsonRpcRequest,
     callback: (error: Error | null, result?: JsonRpcResponse) => void,
   ): void;
@@ -69,7 +69,7 @@ export class MetaMaskInpageProvider extends EventEmitter {
    * for the given method. Only supports 4 specific methods.
    * @deprecated Use {@link request} instead.
    */
-  send (payload: SendSyncJsonRpcRequest): JsonRpcResponse;
+  send(payload: SendSyncJsonRpcRequest): JsonRpcResponse;
 
   /**
    * Indicating that this provider is a MetaMask provider.
@@ -97,11 +97,11 @@ export class MetaMaskInpageProvider extends EventEmitter {
 }
 
 /**
- * Initializes a MetaMaskInpageProvider and (optionally) assigns it as window.ethereum.
+ * Initializes a InpageProvider and (optionally) assigns it as window.ethereum.
  * @returns The initialized provider (whether set or not).
  */
-export function initProvider (
-  options: Pick<MetaMaskInpageProviderOptions, 'maxEventListeners' | 'shouldSendMetadata'> & {
+export function initProvider(
+  options: Pick<InpageProviderOptions, 'maxEventListeners' | 'shouldSendMetadata'> & {
 
     /** A Node.js duplex stream. */
     connectionStream: Duplex;
@@ -112,7 +112,7 @@ export function initProvider (
      */
     shouldSetOnWindow?: boolean;
   }
-): MetaMaskInpageProvider;
+): InpageProvider;
 
 /**
  * Sets the given provider instance as window.ethereum and dispatches
@@ -120,7 +120,7 @@ export function initProvider (
  *
  * @param providerInstance - The provider instance.
  */
-export function setGlobalProvider (providerInstance: MetaMaskInpageProvider): void;
+export function setGlobalProvider(providerInstance: InpageProvider): void;
 
 export interface RequestArguments {
 
